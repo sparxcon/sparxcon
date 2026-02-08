@@ -1,32 +1,59 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Gemini API Key</title>
-  <style>
-    body { width: 200px; padding: 10px; font-family: sans-serif; }
-    input[type="text"] {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 6px;
-      margin-bottom: 10px;
+// src/popup.js
+
+document.addEventListener('DOMContentLoaded', () => {
+  const saveBtn = document.getElementById('saveKeyBtn');
+  const testBtn = document.getElementById('testKeyBtn');
+  const apiKeyInput = document.getElementById('apiKeyInput');
+
+  // Load existing key from storage if it exists to show the user
+  chrome.storage.local.get(['geminiApiKey'], (result) => {
+    if (result.geminiApiKey) {
+      apiKeyInput.value = result.geminiApiKey;
     }
-    button {
-      width: 100%;
-      padding: 6px;
-      margin-bottom: 8px; /* adds space below each button */
+  });
+
+  // Handle Saving the Key
+  saveBtn.addEventListener('click', () => {
+    const apiKey = apiKeyInput.value.trim();
+
+    if (!apiKey) {
+      alert('Please enter an API key!');
+      return;
     }
-  </style>
-</head>
-<body>
-  <h3>Enter your Gemini API Key</h3>
 
-  <!-- Text input -->
-  <input type="text" id="apiKeyInput" placeholder="API Key" />
+    chrome.storage.local.set({ geminiApiKey: apiKey }, () => {
+      alert('API Key saved successfully!');
+    });
+  });
 
-  <!-- Button -->
-  <button id="saveKeyBtn">Save API Key</button>
-  <button id="testKeyBtn">Test</button>
+  // Handle Testing the Key via the Background Script
+  testBtn.addEventListener('click', async () => {
+    const apiKey = apiKeyInput.value.trim();
 
-  <script src="../dist/popup.bundle.js" type="module"></script>
-</body>
-</html>
+    if (!apiKey) {
+      alert('Please enter an API key to test!');
+      return;
+    }
+
+    // First, save it just in case they didn't hit save
+    await chrome.storage.local.set({ geminiApiKey: apiKey });
+
+    // Send message to background.js to perform the AI test
+    chrome.runtime.sendMessage({
+      action: "generate",
+      prompt: "Confirm if this API key is working by saying: 'Connection Successful!'",
+      extract: "System Test"
+    }, (response) => {
+      if (chrome.runtime.lastError) {
+        alert("Error: Could not contact background script.");
+        return;
+      }
+
+      if (response && response.result) {
+        alert(response.result);
+      } else {
+        alert("Failed to get a response. Check your internet and API key.");
+      }
+    });
+  });
+});
