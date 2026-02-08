@@ -3,12 +3,15 @@ import { GoogleGenAI } from "@google/genai";
 async function getAPIKey() {
     const apiKeyObject = await chrome.storage.local.get(['geminiApiKey']);
     let apiKey = apiKeyObject["geminiApiKey"] || '';
-    // apiKey = apiKey["geminiApiKey"];
     return apiKey;
 }
 
 async function generateText(question, extract) {
   const apiKey = await getAPIKey();
+
+  if (!apiKey) {
+    throw new Error("API Key is missing. Please save it in the popup.");
+  }
 
   const ai = new GoogleGenAI({ apiKey: apiKey });
 
@@ -42,9 +45,16 @@ async function generateText(question, extract) {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "generate") {
-    generateText(message.prompt, message.extract).then(response => {
-      sendResponse({ result: response });
-    });
+    generateText(message.prompt, message.extract)
+      .then(response => {
+        sendResponse({ result: response });
+      })
+      .catch(error => {
+        // Send the error back to the popup/content script so the user sees it
+        console.error("Generation Error:", error);
+        sendResponse({ result: "Error: " + error.message });
+      });
+
     // Return true to indicate you want to send a response asynchronously
     return true;
   }
