@@ -1,5 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
-
 document.addEventListener('DOMContentLoaded', () => {
   // Save button handler
   document.getElementById('saveKeyBtn').addEventListener('click', () => {
@@ -16,30 +14,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  document.getElementById('testKeyBtn').addEventListener('click', async() => {
+  // Test button handler (Modified to use Background Script)
+  document.getElementById('testKeyBtn').addEventListener('click', async () => {
 
     const apiKeyObject = await chrome.storage.local.get(['geminiApiKey']);
     let apiKey = apiKeyObject["geminiApiKey"] || '';
     console.log(apiKey);
-    // apiKey = apiKey["geminiApiKey"];
-    // console.log(apiKey);
 
     if (!apiKey) {
       alert('No API key found!');
       return;
     }
 
-    const ai = new GoogleGenAI({ apiKey: apiKey });
+    // Send a message to background.js to test the connection
+    chrome.runtime.sendMessage({
+      action: "generate",
+      prompt: "Say 'The API Key provided works!' if you receive this.",
+      extract: "System Test" 
+    }, (response) => {
+      if (chrome.runtime.lastError) {
+        alert("Error connecting to background script: " + chrome.runtime.lastError.message);
+        return;
+      }
 
-    try {
-      const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
-        contents: "Say something along the lines that the API Key provided works",
-      });
-      alert(response.text);
-    } catch (err) {
-      alert("An error has occured with generating a reply from Gemini. Please check the API Key you provided is correct!");
-      alert(`The Error that Occured: ${err}`);
-    }
+      if (response && response.result) {
+        alert(response.result);
+      } else {
+        alert("An error occurred. Please check the API Key you provided is correct!");
+      }
+    });
   });
 });
