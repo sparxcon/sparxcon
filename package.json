@@ -1,5 +1,5 @@
 {
-  "name": "sparx-reader-solver",
+  "name": "sparxcon",
   "version": "1.0.0",
   "main": "content.js",
   "scripts": {
