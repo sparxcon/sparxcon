@@ -22,7 +22,15 @@
       "run_at": "document_end"
     }
   ],
-  "permissions": ["storage", "activeTab", "scripting"],
+  "permissions": [
+    "storage", 
+    "activeTab", 
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://generativelanguage.googleapis.com/*",
+    "https://reader.sparx-learning.com/*"
+  ],
   "browser_specific_settings": {
     "gecko": {
       "id": "sparxcontc@yahoo.com"
