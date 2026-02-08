@@ -8,16 +8,13 @@
     "48": "icons/sparx_48.png",
     "128": "icons/sparx_128.png"
   },
-
   "background": {
-    "service_worker": "dist/background.bundle.js",
+    "scripts": ["dist/background.bundle.js"],
     "type": "module"
   },
-
   "action": {
     "default_popup": "src/popup.html"
   },
-
   "content_scripts": [
     {
       "matches": ["https://reader.sparx-learning.com/*"],
@@ -25,6 +22,10 @@
       "run_at": "document_end"
     }
   ],
-
-  "permissions": ["storage", "activeTab", "scripting"]
+  "permissions": ["storage", "activeTab", "scripting"],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "sparxcontc@yahoo.com"
+    }
+  }
 }
